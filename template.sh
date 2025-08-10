@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
+
 main() {
     alternateScreenBuffer -e
-    echo reading Key
-    c="$(readKey)"
-    echo reading "done"
+    choosen=$(choose "$@")
     alternateScreenBuffer -q
-    echo $c
+    echo $choosen
 }
 
 err() {
@@ -48,46 +47,45 @@ readKey() {
     local key
     read -rsn 1 key
     case $key in
-        [a-z,A-Z,0-9]) echo $key   ;;
+        [a-z,A-Z,0-9]) echo alpha $key   ;;
                 $'\e') readEscape  ;;
                     *) echo Unknown;;
     esac    
 }
 readEscape() {
-    echo Escape
     local key
     read -rsn 1 key
     [[ $key != "[" ]] && { echo Unknown; return 1; }
     read -rsn 1 key
     case $key in
-            A) echo Up                    ;;
-            B) echo Down                  ;;
-            C) echo Right                 ;;
-            D) echo Left                  ;;
+            A) echo Escape Up                    ;;
+            B) echo Escape Down                  ;;
+            C) echo Escape Right                 ;;
+            D) echo Escape Left                  ;;
             *) echo Unknown $key; return 1;;
     esac    
 }
 
 
 choose() {
-    local s=1
+    local selected=1
     while true; do
-        local i=1
+        local current=1
         for arg in "$@"; do
-            printf '\e[%s;H' "$i" >&2
-            [[ "$i" == "$s" ]] && echo -e "\e[38;5;212m""$arg\e[0m" >&2 \
-                               || echo "$arg" >&2
-            i=$((i+1))
+            printf '\e[%s;H' "$current" >&2
+            [[ "$current" == "$selected" ]] && echo -e "\e[38;5;212m""$arg\e[0m" >&2 \
+                                             || echo "$arg" >&2
+            current=$((current+1))
         done
-        read -t 0.1
-        key=$(readArrow)
+        key=$(readKey)
         case $key in
-            Up)    s=$(( 1  > s-1 ? 1   : s-1 ));;
-            Down)  s=$(( $# < s+1 ? $#  : s+1 ));;
-            Right) break;;
+               "Escape Up")    selected=$(( 1  > selected-1 ? 1   : selected-1 ));;
+             "Escape Down")  selected=$(( $# < selected+1 ? $#  : selected+1 ));;
+            "Escape Right") break;;
+                         *) ;;
         esac
     done
-    eval "echo \$$s"
+    eval "echo \$$selected"
 }
 
-main
+main "$@"
