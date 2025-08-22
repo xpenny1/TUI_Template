@@ -52,7 +52,7 @@ readKey() {
     case $key in
         [a-z,A-Z,0-9]) echo Alpha $key   ;;
                 $'\e') readEscape;;
-                $'\12') echo Enter;;
+                $'\n') echo Enter;;
                     *) echo Unknown;;
     esac    
 }
@@ -66,7 +66,7 @@ readEscape() {
             B) echo Escape Down                  ;;
             C) echo Escape Right                 ;;
             D) echo Escape Left                  ;;
-            *) echo Unknown $key; return 1;;
+            *) echo Unknown; return 1;;
     esac    
 }
 
