@@ -30,11 +30,8 @@ screenSize() {
     old_y=$cursor_y
     printf "\e[999;999;H"
     readCursor
-#    old_screen_x=$screen_x
-#    old_screen_y=$screen_y
     screen_x=$cursor_x
     screen_y=$cursor_y
-#    [[ $old_screen_x != $screen_x || $old_screen_y != $screen_y ]] && printf "\e[J" >&2
     printf "\e[%s;%s;H" "$old_y" "$old_x"
     
 }
@@ -77,9 +74,11 @@ readEscape() {
 choose() {
     local selected=$1
     shift
+    local maxLen=0
+    for arg in "$@";do maxLen=$(( ${#arg} > maxLen ? ${#arg} : maxLen )); done
     local current=1
     for arg in "$@"; do
-        printf '\e[%s;%sH' "$current" "$((screen_x / 2))" >&2
+        printf '\e[%s;%sH' "$current" "$(( (screen_x - maxLen) / 2))" >&2
         printf "\e[2K" >&2
         [[ "$current" == "$selected" ]] && echo -e "\e[38;5;212m""$arg\e[0m" >&2 \
                                         || echo "$arg" >&2
@@ -87,10 +86,10 @@ choose() {
     done
     key=$(readKey)
     case $key in
-        "Escape Down" | "Alpha j")  selected=$(( $# < selected+1 ? $#  : selected+1 ));;
-        "Escape Up"   | "Alpha k")    selected=$(( 1  > selected-1 ? 1   : selected-1 ));;
+        "Escape Down" | "Alpha j"          ) selected=$(( $# < selected+1 ? $#  : selected+1 ));;
+        "Escape Up"   | "Alpha k"          ) selected=$(( 1  > selected-1 ? 1   : selected-1 ));;
         "Escape Right"| "Alpha l" | "Enter") eval "echo \$$selected"; return 0;;
-                     *) ;;
+                                          *) ;;
     esac
     echo $selected
     return 1
