@@ -2,6 +2,8 @@
 
 
 main() {
+    echo "$(readCursor)"
+    exit
     screenSize
     coproc READCURSOR { readCursor; }
     alternateScreenBuffer -e
@@ -21,7 +23,11 @@ unhandled() {
 }
 
 readCursor() {
-    IFS='[;' read -rs -d 'R'  -p $'\e[6n' _ cursor_y cursor_x _  
+    IFS='[;' read -rs -d 'R'  -p $'\e[6n' _ cursor_y cursor_x _ </dev/tty >/dev/tty
+#    echo $cursor_x
+#    echo $cursor_y
+#    printf '\e[6n' >/dev/tty
+#    IFS='[;' read -rs -d 'R'  _ cursor_y cursor_x _ </dev/tty
 }
 
 screenSize() {
