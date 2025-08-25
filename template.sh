@@ -2,13 +2,16 @@
 
 
 main() {
-    echo "$(readCursor)"
-    exit
-    screenSize
-    coproc READCURSOR { readCursor; }
     alternateScreenBuffer -e
+    screen=( $(screenSize) )
+    screen_x="${screen[1]}"
+    screen_y="${screen[0]}"
     selected=1
-    while ! selected=$(choose $selected "$@"); do screenSize; done
+    while ! selected=$(choose $selected "$@"); do
+    screen=( $(screenSize) )
+    screen_x="${screen[1]}"
+    screen_y="${screen[0]}"
+    done
     alternateScreenBuffer -q
     echo $selected
 }
@@ -23,22 +26,18 @@ unhandled() {
 }
 
 readCursor() {
+    local cursor_x
+    local cursor_y
     IFS='[;' read -rs -d 'R'  -p $'\e[6n' _ cursor_y cursor_x _ </dev/tty >/dev/tty
-#    echo $cursor_x
-#    echo $cursor_y
-#    printf '\e[6n' >/dev/tty
-#    IFS='[;' read -rs -d 'R'  _ cursor_y cursor_x _ </dev/tty
+    echo $cursor_y $cursor_x
 }
 
 screenSize() {
-    readCursor
-    old_x=$cursor_x
-    old_y=$cursor_y
-    printf "\e[999;999;H"
-    readCursor
-    screen_x=$cursor_x
-    screen_y=$cursor_y
-    printf "\e[%s;%s;H" "$old_y" "$old_x"
+    local cursor=( $(readCursor) )
+    printf $'\e[%s;%sH' 999 999 >/dev/tty
+    local screen=( $(readCursor) )
+    printf $'\e[%s;%sH' "${cursor[@]}" >/dev/tty
+    echo "${screen[@]}"
     
 }
 
